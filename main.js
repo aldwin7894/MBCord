@@ -14,7 +14,10 @@ const fs = require('fs');
 const os = require('os');
 const unhandled = require('electron-unhandled');
 const contextMenu = require('electron-context-menu');
-const { is, chromeVersion, electronVersion, openNewGitHubIssue } = require('electron-util');
+const {
+	is,
+} = require('@electron-toolkit/utils');
+const { electronAPI } = require('@electron-toolkit/preload')
 const path = require('path');
 const { v4 } = require('uuid');
 const Store = require('electron-store');
@@ -38,6 +41,7 @@ const {
 	maximumSessionInactivity,
 	maxLogFileSizeMB
 } = require('./config.json');
+const dayjs = require('dayjs');
 
 /**
  * @type {BrowserWindow}
@@ -121,10 +125,10 @@ let updateChecker;
 			Architecture: ${process.arch}
 			MBCord version: ${version}
 			Node version: ${process.versions.node}
-			Electron version: ${electronVersion}
-			Chrome version: ${chromeVersion}
+			Electron version: ${electronAPI.process.versions.electron}
+			Chrome version: ${electronAPI.process.versions.chrome}
 		`;
-	}
+	};
 
 	logger.info('Starting app...');
 	logger.info(debugInfo());
@@ -135,15 +139,15 @@ let updateChecker;
 	});
 
 	unhandled({
-		logger: error => logger.error(error),
+		logger: (error) => logger.error(error),
 		showDialog: true,
-		reportButton: error => {
+		reportButton: (error) => {
 			openNewGitHubIssue({
 				user: author,
 				repo: name,
 				labels: ['bug'],
 				body: `\`\`\`\n${error.stack}\n\`\`\`\n\n---\n\n${debugInfo()}`
-			})
+			});
 		}
 	});
 
@@ -189,7 +193,8 @@ let updateChecker;
 		updateChecker = setInterval(checkForUpdates, updateCheckInterval);
 	};
 
-	const getSelectedServer = () => store.get('servers').find((server) => server.isSelected);
+	const getSelectedServer = () =>
+		store.get('servers').find((server) => server.isSelected);
 
 	const resetApp = () => {
 		store.clear();
@@ -203,9 +208,9 @@ let updateChecker;
 
 	const toggleDisplay = async () => {
 		store.set('doDisplayStatus', !store.get('doDisplayStatus'));
-		
+
 		const doDisplay = store.get('doDisplayStatus');
-		
+
 		logger.debug(`doDisplayStatus: ${doDisplay}`);
 		if (!doDisplay && rpc) await rpc.clearActivity();
 	};
@@ -226,17 +231,20 @@ let updateChecker;
 		mainWindow.setSize(size.x, size.y);
 		mainWindow.loadFile(path.join(__dirname, 'static', `${pageName}.html`));
 
-		if(preventAppQuitOnClose) {
-			mainWindow.addListener('close', (closeNoExit = (e) => {
-				e.preventDefault(); // prevent app close
-				mainWindow.hide(); // hide window
-				appBarHide(true);
-				mainWindow.removeListener('close', closeNoExit); // remove listener
-			}));
+		if (preventAppQuitOnClose) {
+			mainWindow.addListener(
+				'close',
+				(closeNoExit = (e) => {
+					e.preventDefault(); // prevent app close
+					mainWindow.hide(); // hide window
+					appBarHide(true);
+					mainWindow.removeListener('close', closeNoExit); // remove listener
+				})
+			);
 		}
 
 		appBarHide(false);
-	}
+	};
 
 	const stopPresenceUpdater = async () => {
 		if (mbc) {
@@ -262,19 +270,20 @@ let updateChecker;
 		if (!tray) return logger.warn('Attempted to select server without tray');
 
 		const savedServers = store.get('servers');
-		const savedServer = savedServers.find(server => server.isSelected);
-		if (savedServer && (server.serverId === savedServer.serverId)) return logger.debug('Tried to select server that\'s already selected');
+		const savedServer = savedServers.find((server) => server.isSelected);
+		if (savedServer && server.serverId === savedServer.serverId)
+			return logger.debug("Tried to select server that's already selected");
 
 		const servers = savedServers.map((savedServer) => {
 			return savedServer.serverId === server.serverId
 				? { ...savedServer, isSelected: true }
 				: { ...savedServer, isSelected: false };
 		});
-			
+
 		store.set('servers', servers);
 
 		tray.setContextMenu(buildTrayMenu(servers));
-		
+
 		mainWindow.webContents.send('RECEIVE_TYPE', server.serverType);
 
 		await stopPresenceUpdater();
@@ -285,16 +294,14 @@ let updateChecker;
 		if (!tray) return logger.warn('Attempted to remove server without tray');
 
 		let wasSelected = false;
-		const servers = store
-			.get('servers')
-			.filter((server) => {
-				if (server.serverId !== serverToRemove.serverId) {
-					return true;
-				} else {
-					if (server.isSelected) wasSelected = true;
-					return false;
-				}
-			});
+		const servers = store.get('servers').filter((server) => {
+			if (server.serverId !== serverToRemove.serverId) {
+				return true;
+			} else {
+				if (server.isSelected) wasSelected = true;
+				return false;
+			}
+		});
 
 		store.set('servers', servers);
 
@@ -303,7 +310,11 @@ let updateChecker;
 		dialog.showMessageBox({
 			title: name,
 			type: 'info',
-			detail: `Successfully removed server from the server list. ${wasSelected ? 'Since this was the currently selected server, your presence will no longer be displayed.' : ''}`
+			detail: `Successfully removed server from the server list. ${
+				wasSelected
+					? 'Since this was the currently selected server, your presence will no longer be displayed.'
+					: ''
+			}`
 		});
 	};
 
@@ -431,11 +442,12 @@ let updateChecker;
 		tray.setToolTip(name);
 		tray.setContextMenu(contextMenu);
 
-		if (!is.development) new Notification({
-			title: `${name} ${version}`,
-			icon: path.join(__dirname, 'icons', 'large.png'),
-			body: `${name} has been minimized to the tray`
-		}).show();
+		if (!is.development)
+			new Notification({
+				title: `${name} ${version}`,
+				icon: path.join(__dirname, 'icons', 'large.png'),
+				body: `${name} has been minimized to the tray`
+			}).show();
 
 		appBarHide(true);
 	};
@@ -489,7 +501,10 @@ let updateChecker;
 
 	const connectRPC = () => {
 		return new Promise((resolve) => {
-			if (rpc) return logger.warn('Attempted to connect to RPC pipe while already connected');
+			if (rpc)
+				return logger.warn(
+					'Attempted to connect to RPC pipe while already connected'
+				);
 
 			const server = getSelectedServer();
 			if (!server) return logger.warn('No selected server');
@@ -551,11 +566,13 @@ let updateChecker;
 		}
 
 		setPresence();
-		if(!presenceUpdate) presenceUpdate = setInterval(setPresence, presenceUpdateIntervalMS);
+		if (!presenceUpdate)
+			presenceUpdate = setInterval(setPresence, presenceUpdateIntervalMS);
 	};
 
 	const setPresence = async () => {
-		if (!store.get('doDisplayStatus')) return logger.debug('doDisplayStatus disabled, not setting status');
+		if (!store.get('doDisplayStatus'))
+			return logger.debug('doDisplayStatus disabled, not setting status');
 
 		const data = store.get();
 		const server = getSelectedServer();
@@ -579,10 +596,22 @@ let updateChecker;
 
 			if (session) {
 				const NPItem = session.NowPlayingItem;
+				const NPItemId =
+					NPItem?.ParentLogoItemId &&
+					NPItem.Type === 'Video' &&
+					NPItem?.ExtraType
+						? NPItem.ParentLogoItemId
+						: NPItem.Id;
 
-				const NPItemLibraryID = await mbc.getItemInternalLibraryId(NPItem.Id);
+				const NPItemLibraryID = await mbc.getItemInternalLibraryId(NPItemId);
+				if (!NPItemLibraryID) return;
+
 				// convert
-				if (server.ignoredViews.includes(NPItemLibraryID)) {
+				if (
+					server.ignoredViews.includes(NPItemLibraryID) ||
+					NPItem?.ExtraType === 'ThemeVideo' ||
+					NPItem?.ExtraType === 'ThemeMusic'
+				) {
 					// prettier-ignore
 					logger.debug(`${NPItem.Name} is in library with ID ${NPItemLibraryID} which is on the ignored library list, will not set status`);
 					if (rpc) await rpc.clearActivity();
@@ -592,34 +621,42 @@ let updateChecker;
 				// remove client IP addresses (hopefully this takes care of all of them)
 				logger.debug(scrubObject(session, 'RemoteEndPoint'));
 
-				const currentEpochSeconds = new Date().getTime() / 1000;
-				const startTimestamp = Math.round(
-					currentEpochSeconds -
-						Math.round(session.PlayState.PositionTicks / 10000 / 1000)
+				const now = dayjs();
+				const startTimestamp = now.subtract(
+					session.PlayState.PositionTicks / 10000000,
+					'seconds'
 				);
-				const endTimestamp = Math.round(
-					currentEpochSeconds +
-						Math.round(
-							(session.NowPlayingItem.RunTimeTicks -
-								session.PlayState.PositionTicks) /
-								10000 /
-								1000
-						)
+				const endTimestamp = startTimestamp.add(
+					session.NowPlayingItem.RunTimeTicks / 10000000,
+					'seconds'
 				);
 
 				logger.debug(
-					`Time until media end: ${
-						endTimestamp - currentEpochSeconds
-					}, been playing since: ${startTimestamp}`
+					`Time until media end: ${endTimestamp.diff(
+						now
+					)}, been playing since: ${startTimestamp.toISOString()}`
 				);
 
-				setTimeout(
-					setPresence,
-					(endTimestamp - currentEpochSeconds) * 1000 + 1500
-				);
+				// setTimeout(
+				// 	setPresence,
+				// 	((endTimestamp.unix() - now.unix()) + 2) * 1000
+				// );
+
+				let largeImageKey = 'large';
+				if (NPItem?.SeriesId && NPItem.Type === 'Episode') {
+					largeImageKey = mbc.getPrimaryImage(NPItem.SeasonId);
+				} else if (NPItem?.Id && NPItem.Type === 'Movie') {
+					largeImageKey = mbc.getPrimaryImage(NPItem.Id);
+				} else if (
+					NPItem?.ParentLogoItemId &&
+					NPItem.Type === 'Video' &&
+					NPItem?.ExtraType
+				) {
+					largeImageKey = mbc.getPrimaryImage(NPItem.ParentLogoItemId);
+				}
 
 				const defaultProperties = {
-					largeImageKey: 'large',
+					largeImageKey,
 					largeImageText: `${
 						NPItem.Type === 'Audio' ? 'Listening' : 'Watching'
 					} on ${session.Client}`,
@@ -630,8 +667,8 @@ let updateChecker;
 
 				if (!session.PlayState.IsPaused) {
 					data.useTimeElapsed
-						? (defaultProperties.startTimestamp = startTimestamp)
-						: (defaultProperties.endTimestamp = endTimestamp);
+						? (defaultProperties.startTimestamp = startTimestamp.unix())
+						: (defaultProperties.endTimestamp = endTimestamp.unix());
 				}
 
 				switch (NPItem.Type) {
@@ -640,24 +677,40 @@ let updateChecker;
 						const seasonNum = NPItem.ParentIndexNumber
 						// prettier-ignore
 						const episodeNum = NPItem.IndexNumber;
+						let seasonName = NPItem.SeasonName.includes('Special')
+							? NPItem.SeriesName
+							: NPItem.SeasonName;
+						seasonName = seasonName.replace(/\(\d*\)/g, '').trim();
+						const year = NPItem?.PremiereDate
+							? `(${NPItem?.PremiereDate?.substring(0, 4)})`
+							: NPItem.ProductionYear
+							? NPItem.ProductionYear
+							: '';
 
 						rpc.setActivity({
-							details: `Watching ${NPItem.SeriesName} ${
-								NPItem.ProductionYear ? `(${NPItem.ProductionYear})` : ''
-							}`,
+							details: `Watching ${seasonName} ${year}`,
 							state: `${
 								seasonNum ? `S${seasonNum.toString().padStart(2, '0')}` : ''
 							}${
 								episodeNum ? `E${episodeNum.toString().padStart(2, '0')}: ` : ''
-							}${NPItem.Name}`,
+							}${
+								NPItem.Name.length >= 64
+									? NPItem.Name.substring(0, 61) + '...'
+									: NPItem.Name
+							}`,
 							...defaultProperties
 						});
 						break;
 					}
 					case 'Movie': {
+						let movieName = NPItem.Name.replace(/gekijouban|eiga/gi, '').trim();
+						movieName =
+							movieName.length >= 64
+								? movieName.substring(0, 61) + '...'
+								: movieName;
 						rpc.setActivity({
 							details: 'Watching a Movie',
-							state: `${NPItem.Name} ${
+							state: `${movieName} ${
 								NPItem.ProductionYear ? `(${NPItem.ProductionYear})` : ''
 							}`,
 							...defaultProperties
@@ -697,6 +750,27 @@ let updateChecker;
 							}`,
 							...defaultProperties
 						});
+						break;
+					}
+					case 'Video': {
+						if (NPItem?.ExtraType) {
+							const videoName = NPItem.Name.replace(
+								/gekijouban|eiga/gi,
+								''
+							).trim();
+							rpc.setActivity({
+								details: `Watching ${NPItem.ExtraType} from a Movie`,
+								state: `${videoName}`,
+								...defaultProperties
+							});
+						} else {
+							const videoName = NPItem.Name.trim();
+							rpc.setActivity({
+								details: `Watching a Video`,
+								state: `${videoName}`,
+								...defaultProperties
+							});
+						}
 						break;
 					}
 					default:
@@ -823,7 +897,6 @@ let updateChecker;
 		event.reply('RECEIVE_VIEWS', viewData);
 	});
 
-
 	// FUTURE RELEASE, UNDECIDED..
 	// ipcMain.on('RECEIVE_CONNECT_SERVERS', async (event, data) => {
 	// 	logger.debug(`Receive connect servers data: ${JSON.stringify(data)}`);
@@ -864,7 +937,7 @@ let updateChecker;
 	// 			title: name,
 	// 			detail: 'An error occured and we failed to fetch the connect servers linked to your account, please try again later.'
 	// 		});
-			
+
 	// 		return event.reply('CONNECT_ERROR');
 	// 	}
 
@@ -938,8 +1011,7 @@ let updateChecker;
 
 			if (
 				configuredServers.some(
-					(configuredServer) =>
-						configuredServer.serverId === serverInfo.Id
+					(configuredServer) => configuredServer.serverId === serverInfo.Id
 				)
 			) {
 				dialog.showMessageBox(mainWindow, {
@@ -971,7 +1043,7 @@ let updateChecker;
 							'Your server has been successfully added. Would you like to select it automatically?',
 						buttons: ['Yes', 'No']
 					});
-		
+
 					if (res.response === 0) {
 						selectServer(newServer);
 					}

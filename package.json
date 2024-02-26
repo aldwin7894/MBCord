@@ -4,7 +4,9 @@
   "description": "An Emby/Jellyfin rich presence client for Discord",
   "main": "main.js",
   "scripts": {
-    "start": "electron .",
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
     "build": "node build-production.js",
     "build:mac": "electron-packager . MBCord --out=build --overwrite --asar --icon=icons/mac/icon.icns --platform=darwin --arch=x64",
     "build:win64": "electron-packager . MBCord --out=build --overwrite --asar --icon=icons/win/icon.ico --platform=win32 --arch=x64",
@@ -24,30 +26,41 @@
   "author": "oonqt",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^13.3.0",
+    "@electron-forge/cli": "^7.3.0",
+    "@electron-forge/maker-deb": "^7.3.0",
+    "@electron-forge/maker-rpm": "^7.3.0",
+    "@electron-forge/maker-squirrel": "^7.3.0",
+    "@electron-forge/maker-zip": "^7.3.0",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.3.0",
+    "electron": "^29.0.1",
     "electron-installer-zip": "^0.1.2",
-    "electron-packager": "^15.2.0",
-    "rimraf": "^3.0.2",
-    "yarn-upgrade-all": "^0.5.4"
+    "rimraf": "^5.0.5",
+    "yarn-upgrade-all": "^0.7.2"
   },
   "dependencies": {
+    "@electron-toolkit/preload": "^3.0.0",
+    "@electron-toolkit/utils": "^3.0.0",
     "colors": "^1.4.0",
+    "dayjs": "^1.11.10",
     "dedent-js": "^1.0.1",
-    "deep-cleaner": "^1.2.1",
-    "discord-rpc": "^3.2.0",
-    "electron-context-menu": "^3.1.1",
-    "electron-store": "^8.0.0",
-    "electron-unhandled": "^3.0.2",
-    "electron-util": "^0.16.0",
+    "deep-cleaner": "^2.0.0-alpha.3",
+    "discord-rpc": "^4.0.0",
+    "electron-context-menu": "^3.6.1",
+    "electron-squirrel-startup": "^1.0.0",
+    "electron-store": "^8.1.0",
+    "electron-unhandled": "^4.0.1",
     "json-stringify-safe": "^5.0.1",
-    "keytar": "^7.7.0",
-    "material-icons": "^0.7.2",
+    "keytar": "^7.9.0",
+    "material-icons": "^1.13.12",
     "materialize-css": "^1.0.0",
-    "mkdirp": "^1.0.4",
+    "mkdirp": "^3.0.1",
     "request": "^2.88.2",
-    "semver": "^7.3.5",
+    "semver": "^7.6.0",
     "untildify": "^4.0.0",
-    "uuid": "^8.3.2"
+    "uuid": "^9.0.1"
   },
-  "homepage": "https://github.com/oonqt/MBCord"
+  "homepage": "https://github.com/aldwin7894/MBCord",
+  "config": {
+    "forge": "./forge.config.js"
+  }
 }

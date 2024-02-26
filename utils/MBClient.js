@@ -38,10 +38,10 @@ class MBClient {
 
 	get headers() {
 		const headers = {};
-		
+
 		headers['User-Agent'] = `${this.deviceName}/${this.deviceVersion}`;
 		if(this.accessToken) headers['X-Emby-Token'] = this.accessToken;
-		
+
 		return headers;
 	}
 
@@ -115,7 +115,7 @@ class MBClient {
 	 * @returns {Promise<string>} Internal ID
 	 */
 	getLibraryInternalId(libraryId) {
-		// we have to do all this fucking bullshit just to get the library ID 
+		// we have to do all this fucking bullshit just to get the library ID
 		return new Promise((resolve, reject) => {
 			const cacheResult = this.libraryIDCache[libraryId];
 			if (cacheResult && cacheResult.expires > new Date().getTime()) {
@@ -187,11 +187,14 @@ class MBClient {
 				},
 				(err, res, body) => {
 					if (err) return reject(err);
-					if (res.statusCode !== 200)
-						return reject(`Status: ${res.statusCode} Response: ${JSON.stringify(body)}`);
+					if (res.statusCode !== 200) {
+            return reject(new Error(`Status: ${ res.statusCode } Response: ${ JSON.stringify(body) }`));
+          }
 
 					// second ancestor is always the library
-					const libraryID = body.splice(body.length - 2, 1)[0].Id;
+          const libraryID = body.splice(body.length - 2, 1)[0]?.Id;
+          if (!libraryID) return resolve(null);
+
 					this.itemLibraryIDCache[itemId] = { value: libraryID, expires: new Date().getTime() + this.cacheExpSecs * 1000 };
 					resolve(libraryID);
 				}
@@ -255,6 +258,10 @@ class MBClient {
 			);
 		});
 	}
+
+  getPrimaryImage(mediaId) {
+    return `${this.serverAddress}/Items/${mediaId}/Images/Primary?fillHeight=335&quality=60`;
+  }
 
 	/**
 	 * @returns {Promise<void>}
