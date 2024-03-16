@@ -1299,7 +1299,7 @@ dir-compare@^4.2.0:
     minimatch "^3.0.5"
     p-limit "^3.1.0 "
 
-discord-rpc@^4.0.0:
+discord-rpc@^4.0.1:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/discord-rpc/-/discord-rpc-4.0.1.tgz#a89aa04a048aa83ad4f347d53fa0162501eae0d8"
   integrity sha512-HOvHpbq5STRZJjQIBzwoKnQ0jHplbEWFWlPDwXXKm/bILh4nzjcg7mNqll0UY7RsjFoaXA7e/oYb/4lvpda2zA==
@@ -1424,10 +1424,10 @@ electron-squirrel-startup@^1.0.0:
   dependencies:
     debug "^2.2.0"
 
-electron-store@^8.1.0:
-  version "8.1.0"
-  resolved "https://registry.yarnpkg.com/electron-store/-/electron-store-8.1.0.tgz#46a398f2bd9aa83c4a9daaae28380e2b3b9c7597"
-  integrity sha512-2clHg/juMjOH0GT9cQ6qtmIvK183B39ZXR0bUoPwKwYHJsEF3quqyDzMFUAu+0OP8ijmN2CbPRAelhNbWUbzwA==
+electron-store@^8.2.0:
+  version "8.2.0"
+  resolved "https://registry.yarnpkg.com/electron-store/-/electron-store-8.2.0.tgz#114e6e453e8bb746ab4ccb542424d8c881ad2ca1"
+  integrity sha512-ukLL5Bevdil6oieAOXz3CMy+OgaItMiVBg701MNlG6W5RaC0AHN7rvlqTCmeb6O7jP0Qa1KKYTE0xV0xbhF4Hw==
   dependencies:
     conf "^10.2.0"
     type-fest "^2.17.0"
@@ -1454,10 +1454,10 @@ electron-winstaller@^5.0.0:
     lodash.template "^4.2.2"
     temp "^0.9.0"
 
-electron@^29.0.1:
-  version "29.0.1"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-29.0.1.tgz#936c0623a1bbf272dea423305f074de6ac016967"
-  integrity sha512-hsQr9clm8NCAMv4uhHlXThHn52UAgrHgyz3ubBAxZIPuUcpKVDtg4HPmx4hbmHIbYICI5OyLN3Ztp7rS+Dn4Lw==
+electron@^29.1.4:
+  version "29.1.4"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-29.1.4.tgz#6c47467ba50be5dd60b99b8737f69cd12fc0733f"
+  integrity sha512-IWXys0SqgmIfrqXusUGQC0gGG7CCqA5vfmNsUMj8dFkAnK3lisKyjSESStWlrsste/OX/AAC5wsVlf23reUNnw==
   dependencies:
     "@electron/get" "^2.0.0"
     "@types/node" "^20.9.0"

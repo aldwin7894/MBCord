@@ -32,7 +32,7 @@
     "@electron-forge/maker-squirrel": "^7.3.0",
     "@electron-forge/maker-zip": "^7.3.0",
     "@electron-forge/plugin-auto-unpack-natives": "^7.3.0",
-    "electron": "^29.0.1",
+    "electron": "^29.1.4",
     "electron-installer-zip": "^0.1.2",
     "rimraf": "^5.0.5",
     "yarn-upgrade-all": "^0.7.2"
@@ -44,10 +44,10 @@
     "dayjs": "^1.11.10",
     "dedent-js": "^1.0.1",
     "deep-cleaner": "^2.0.0-alpha.3",
-    "discord-rpc": "^4.0.0",
+    "discord-rpc": "^4.0.1",
     "electron-context-menu": "^3.6.1",
     "electron-squirrel-startup": "^1.0.0",
-    "electron-store": "^8.1.0",
+    "electron-store": "^8.2.0",
     "electron-unhandled": "^4.0.1",
     "json-stringify-safe": "^5.0.1",
     "keytar": "^7.9.0",
@@ -62,5 +62,10 @@
   "homepage": "https://github.com/aldwin7894/MBCord",
   "config": {
     "forge": "./forge.config.js"
+  },
+  "yarn-upgrade-all": {
+    "ignore": [
+      "untildify"
+    ]
   }
 }
