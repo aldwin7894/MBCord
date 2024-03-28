@@ -703,7 +703,7 @@ let updateChecker;
 						break;
 					}
 					case 'Movie': {
-						let movieName = NPItem.Name.replace(/gekijouban|eiga|: complete movie/gi, '').trim();
+						let movieName = NPItem.Name.replace(/gekijouban|eiga|: complete movie| - the movie/gi, '').trim();
 						movieName =
 							movieName.length >= 64
 								? movieName.substring(0, 61) + '...'
@@ -755,7 +755,7 @@ let updateChecker;
 					case 'Video': {
 						if (NPItem?.ExtraType) {
 							const videoName = NPItem.Name.replace(
-								/gekijouban|eiga/gi,
+								/gekijouban|eiga|: complete movie| - the movie/gi,
 								''
 							).trim();
 							rpc.setActivity({
