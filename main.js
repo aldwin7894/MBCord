@@ -108,7 +108,7 @@ let updateChecker;
 		}
 	});
 	const logger = new Logger(
-		is.development ? 'console' : 'file',
+		is.dev ? 'console' : 'file',
 		path.join(app.getPath('userData'), 'logs'),
 		logRetentionCount,
 		name,
