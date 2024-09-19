@@ -598,8 +598,8 @@ let updateChecker;
 				const NPItem = session.NowPlayingItem;
 				const NPItemId =
 					NPItem?.ParentLogoItemId &&
-					NPItem.Type === 'Video' &&
-					NPItem?.ExtraType
+					(['Video', 'Episode'].includes(NPItem.Type)) &&
+					(NPItem?.ExtraType || NPItem?.ParentIndexNumber === 0)
 						? NPItem.ParentLogoItemId
 						: NPItem.Id;
 
@@ -643,14 +643,14 @@ let updateChecker;
 				// );
 
 				let largeImageKey = 'large';
-				if (NPItem?.SeriesId && NPItem.Type === 'Episode') {
+				if (NPItem?.SeriesId && NPItem.Type === 'Episode' && NPItem?.ParentIndexNumber !== 0) {
 					largeImageKey = mbc.getPrimaryImage(NPItem.SeasonId);
 				} else if (NPItem?.Id && NPItem.Type === 'Movie') {
 					largeImageKey = mbc.getPrimaryImage(NPItem.Id);
 				} else if (
 					NPItem?.ParentLogoItemId &&
-					NPItem.Type === 'Video' &&
-					NPItem?.ExtraType
+					['Video', 'Episode'].includes(NPItem.Type) &&
+					(NPItem?.ExtraType || NPItem?.ParentIndexNumber === 0)
 				) {
 					largeImageKey = mbc.getPrimaryImage(NPItem.ParentLogoItemId);
 				}
