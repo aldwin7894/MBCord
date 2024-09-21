@@ -24,7 +24,7 @@ const Store = require('electron-store');
 const keytar = require('keytar');
 const StartupHandler = require('./utils/startupHandler');
 const MBClient = require('./utils/MBClient');
-const DiscordRPC = require('discord-rpc');
+const DiscordRPC = require('@xhayper/discord-rpc');
 const UpdateChecker = require('./utils/updateChecker');
 const Logger = require('./utils/logger');
 const serverDiscoveryClient = require('./utils/serverDiscoveryClient');
@@ -655,6 +655,9 @@ let updateChecker;
 					largeImageKey = mbc.getPrimaryImage(NPItem.ParentLogoItemId);
 				}
 
+        /**
+         * @type {DiscordRPC.SetActivity}
+         */
 				const defaultProperties = {
 					largeImageKey,
 					largeImageText: `${
@@ -662,7 +665,8 @@ let updateChecker;
 					} on ${session.Client}`,
 					smallImageKey: session.PlayState.IsPaused ? 'pause' : 'play',
 					smallImageText: session.PlayState.IsPaused ? 'Paused' : 'Playing',
-					instance: false
+					instance: false,
+          type: 3
 				};
 
 				if (!session.PlayState.IsPaused) {

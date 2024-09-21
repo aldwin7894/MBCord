@@ -40,11 +40,11 @@
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^3.0.0",
+    "@xhayper/discord-rpc": "^1.2.0",
     "colors": "^1.4.0",
     "dayjs": "^1.11.13",
     "dedent-js": "^1.0.1",
     "deep-cleaner": "^2.0.0-alpha.3",
-    "discord-rpc": "^4.0.1",
     "electron-context-menu": "^3.6.1",
     "electron-squirrel-startup": "^1.0.0",
     "electron-store": "^8.2.0",
