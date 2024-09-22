@@ -624,13 +624,13 @@ let updateChecker;
 				// remove client IP addresses (hopefully this takes care of all of them)
 				logger.debug(scrubObject(session, 'RemoteEndPoint'));
 
-				const now = dayjs();
+				const now = session.PlayState.IsPaused ? dayjs(session.LastPausedDate) : dayjs();
 				const startTimestamp = now.subtract(
-					session.PlayState.PositionTicks / 10000000,
+					Math.floor(session.PlayState.PositionTicks / 10000000),
 					'seconds'
 				);
 				const endTimestamp = startTimestamp.add(
-					session.NowPlayingItem.RunTimeTicks / 10000000,
+					Math.ceil(session.NowPlayingItem.RunTimeTicks / 10000000),
 					'seconds'
 				);
 
@@ -669,14 +669,10 @@ let updateChecker;
 					smallImageKey: session.PlayState.IsPaused ? 'pause' : 'play',
 					smallImageText: session.PlayState.IsPaused ? 'Paused' : 'Playing',
 					instance: false,
-          type: 3
+          type: 3,
+          startTimestamp: startTimestamp.toDate(),
+          endTimestamp: !session.PlayState.IsPaused ? endTimestamp.toDate() : undefined
 				};
-
-				if (!session.PlayState.IsPaused) {
-					data.useTimeElapsed
-						? (defaultProperties.startTimestamp = startTimestamp.unix())
-						: (defaultProperties.endTimestamp = endTimestamp.unix());
-				}
 
 				switch (NPItem.Type) {
 					case 'Episode': {
