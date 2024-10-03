@@ -42,6 +42,8 @@ const {
 	maxLogFileSizeMB
 } = require('./config.json');
 const dayjs = require('dayjs');
+const utc = require('dayjs/plugin/utc');
+dayjs.extend(utc);
 
 /**
  * @type {BrowserWindow}
@@ -624,7 +626,8 @@ let updateChecker;
 				// remove client IP addresses (hopefully this takes care of all of them)
 				logger.debug(scrubObject(session, 'RemoteEndPoint'));
 
-				const now = session.PlayState.IsPaused ? dayjs(session.LastPausedDate) : dayjs();
+				const now = dayjs().utc();
+        const pausedTimestamp = session.PlayState.IsPaused && dayjs(session.LastPausedDate).utc();
 				const startTimestamp = now.subtract(
 					Math.floor(session.PlayState.PositionTicks / 10000000),
 					'seconds'
@@ -670,8 +673,8 @@ let updateChecker;
 					smallImageText: session.PlayState.IsPaused ? 'Paused' : 'Playing',
 					instance: false,
           type: 3,
-          startTimestamp: startTimestamp.toDate(),
-          endTimestamp: !session.PlayState.IsPaused ? endTimestamp.toDate() : undefined
+          startTimestamp: !session.PlayState.IsPaused ? startTimestamp.unix() : pausedTimestamp.unix(),
+          endTimestamp: !session.PlayState.IsPaused ? endTimestamp.unix() : undefined
 				};
 
 				switch (NPItem.Type) {
