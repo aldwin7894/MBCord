@@ -122,13 +122,13 @@ let updateChecker;
 
 	const debugInfo = () => {
 		return dedent`DEBUG INFO:
-			Development Mode: ${is.development}
+			Development Mode: ${is.dev}
 			Platform: ${process.platform} (Version ${os.release()})
 			Architecture: ${process.arch}
 			MBCord version: ${version}
 			Node version: ${process.versions.node}
-			Electron version: ${electronAPI.process.versions.electron}
-			Chrome version: ${electronAPI.process.versions.chrome}
+			Electron version: ${electronAPI?.process?.versions?.electron}
+			Chrome version: ${electronAPI?.process?.versions?.chrome}
 		`;
 	};
 
@@ -174,7 +174,7 @@ let updateChecker;
 		if (!lockedInstance) return app.quit();
 
 		// in development mode we allow resizing
-		if (is.development) {
+		if (is.dev) {
 			mainWindow.resizable = true;
 			mainWindow.maximizable = true;
 			mainWindow.minimizable = true;
@@ -444,7 +444,7 @@ let updateChecker;
 		tray.setToolTip(name);
 		tray.setContextMenu(contextMenu);
 
-		if (!is.development)
+		if (!is.dev)
 			new Notification({
 				title: `${name} ${version}`,
 				icon: path.join(__dirname, 'icons', 'large.png'),
@@ -491,17 +491,24 @@ let updateChecker;
 	};
 
 	const disconnectRPC = async () => {
-		if (rpc) {
-			logger.info('Disconnecting from Discord');
-			clearTimeout(connectRPCTimeout);
-			rpc.transport.removeAllListeners('close');
+    if (!rpc) return;
+
+    logger.info('Disconnecting from Discord');
+	  clearTimeout(connectRPCTimeout);
+	  rpc.transport.removeAllListeners('close');
+
+		try {
 			await rpc.user?.clearActivity();
-			await rpc.destroy();
-			rpc = null;
-		}
+		} catch (err) {
+      logger.error(err);
+    }
+
+    await rpc.destroy();
+    rpc = null
 	};
 
 	const connectRPC = () => {
+    clearTimeout(connectRPCTimeout);
 		return new Promise((resolve) => {
 			if (rpc)
 				return logger.warn(
@@ -518,12 +525,16 @@ let updateChecker;
 			rpc
 				.login()
 				.then(resolve)
-				.catch(() => {
+				.catch(async () => {
 					logger.error(
 						`Failed to connect to Discord. Attempting to reconnect in ${
 							discordConnectRetryMS / 1000
 						} seconds`
 					);
+
+          await disconnectRPC();
+          connectRPCTimeout = setTimeout(connectRPC, discordConnectRetryMS);
+          return resolve();
 				});
 
 			rpc.transport.once('close', async () => {
@@ -578,6 +589,8 @@ let updateChecker;
 	const setPresence = async () => {
 		if (!store.get('doDisplayStatus'))
 			return logger.debug('doDisplayStatus disabled, not setting status');
+    if (!rpc?.user)
+      return logger.debug('RPC user is not present, not setting status');
 
 		const data = store.get();
 		const server = getSelectedServer();
