@@ -773,6 +773,7 @@ let updateChecker;
 					}
 					case 'Video': {
 						if (NPItem?.ExtraType) {
+              NPItem.ExtraType = NPItem.ExtraType === 'Unknown' ? 'a Special' : NPItem.ExtraType;
 							const videoName = NPItem.Name.replace(
 								/gekijouban|eiga|: complete movie| - the movie/gi,
 								''
