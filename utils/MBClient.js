@@ -260,7 +260,7 @@ class MBClient {
 	}
 
   getPrimaryImage(mediaId) {
-    return `${this.serverAddress}/Items/${mediaId}/Images/Primary?width=512&height=512&quality=100&format=jpg`;
+    return `${this.serverAddress}/Items/${mediaId}/Images/Primary?width=512&quality=80&format=jpg`;
   }
 
 	/**

@@ -24,7 +24,7 @@ const Store = require('electron-store');
 const keytar = require('keytar');
 const StartupHandler = require('./utils/startupHandler');
 const MBClient = require('./utils/MBClient');
-const DiscordRPC = require('@xhayper/discord-rpc');
+const DiscordRPC = require('@kostya-main/discord-rpc');
 const UpdateChecker = require('./utils/updateChecker');
 const Logger = require('./utils/logger');
 const serverDiscoveryClient = require('./utils/serverDiscoveryClient');
@@ -699,12 +699,15 @@ let updateChecker;
 						let seasonName = NPItem.SeasonName.includes('Special')
 							? NPItem.SeriesName
 							: NPItem.SeasonName;
-						seasonName = seasonName.replace(/\(\d*\)/g, '').trim();
 						const year = NPItem?.PremiereDate
 							? `(${NPItem?.PremiereDate?.substring(0, 4)})`
 							: NPItem.ProductionYear
-							? NPItem.ProductionYear
-							: '';
+							? `(${NPItem.ProductionYear})`
+              : '';
+            seasonName = seasonName.replace(/\(\d*\)/g, '').trim();
+            seasonName = seasonName.length + (year.length + 10) >= 128
+              ? seasonName.substring(0, 128 - (year.length + 13)) + '...'
+              : seasonName;
 
 						rpc.user?.setActivity({
 							details: `Watching ${seasonName} ${year}`,
