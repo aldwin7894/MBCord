@@ -170,7 +170,13 @@ class MBClient {
 
 	/**
 	 * @param {string} itemId ID of the item
-	 * @returns {Promise<string>}
+	 * @returns {Promise<{
+   *  libraryID: string,
+   *  externalUrls?: {
+   *    Name: string,
+   *    Url: string
+*      }[]
+   * }>}
 	 */
 	getItemInternalLibraryId(itemId) {
 		return new Promise((resolve, reject) => {
@@ -195,8 +201,17 @@ class MBClient {
           const libraryID = body.splice(body.length - 2, 1)[0]?.Id;
           if (!libraryID) return resolve(null);
 
-					this.itemLibraryIDCache[itemId] = { value: libraryID, expires: new Date().getTime() + this.cacheExpSecs * 1000 };
-					resolve(libraryID);
+          const parent = body.splice(body.length - 2, 1)?.[0];
+
+          const value = {
+            value: {
+              libraryID,
+              externalUrls: (parent?.ExternalUrls || []).filter(url => !url?.Name?.includes('Shoko'))
+            },
+            expires: new Date().getTime() + this.cacheExpSecs * 1000
+          };
+          this.itemLibraryIDCache[itemId] = value;
+					resolve(value);
 				}
 			);
 		});

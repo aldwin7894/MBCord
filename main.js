@@ -621,8 +621,11 @@ let updateChecker;
 						? NPItem.ParentLogoItemId
 						: NPItem.Id;
 
-				const NPItemLibraryID = await mbc.getItemInternalLibraryId(NPItemId);
-				if (!NPItemLibraryID) return;
+        const {
+          libraryID: NPItemLibraryID,
+          externalUrls
+        } = await mbc.getItemInternalLibraryId(NPItemId);
+        if (!NPItemLibraryID) return;
 
 				// convert
 				if (
@@ -672,7 +675,15 @@ let updateChecker;
 					(NPItem?.ExtraType || NPItem?.ParentIndexNumber === 0)
 				) {
 					largeImageKey = mbc.getPrimaryImage(NPItem.ParentLogoItemId);
-				}
+        }
+
+        const buttons = externalUrls.length && externalUrls.slice(0, 2).map(
+          item => ({
+            label: item.Name,
+            url: item.Url
+          })
+        );
+        logger.info(buttons)
 
         /**
          * @type {DiscordRPC.SetActivity}
@@ -687,7 +698,8 @@ let updateChecker;
 					instance: false,
           type: 3,
           startTimestamp: !session.PlayState.IsPaused ? startTimestamp.unix() : pausedTimestamp.unix(),
-          endTimestamp: !session.PlayState.IsPaused ? endTimestamp.unix() : undefined
+          endTimestamp: !session.PlayState.IsPaused ? endTimestamp.unix() : undefined,
+          ...(buttons.length && { buttons })
 				};
 
 				switch (NPItem.Type) {
