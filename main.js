@@ -8,23 +8,23 @@ const {
 	dialog,
 	Notification
 } = require('electron');
-const crypto = require('crypto');
+const crypto = require('node:crypto');
 const dedent = require('dedent-js');
-const fs = require('fs');
-const os = require('os');
+const fs = require('node:fs');
+const os = require('node:os');
 const unhandled = require('electron-unhandled');
 const contextMenu = require('electron-context-menu');
 const {
 	is,
 } = require('@electron-toolkit/utils');
 const { electronAPI } = require('@electron-toolkit/preload')
-const path = require('path');
+const path = require('node:path');
 const { v4 } = require('uuid');
 const Store = require('electron-store');
 const keytar = require('keytar');
 const StartupHandler = require('./utils/startupHandler');
 const MBClient = require('./utils/MBClient');
-const DiscordRPC = require('@kostya-main/discord-rpc');
+const DiscordRPC = require('@xhayper/discord-rpc');
 const UpdateChecker = require('./utils/updateChecker');
 const Logger = require('./utils/logger');
 const serverDiscoveryClient = require('./utils/serverDiscoveryClient');
@@ -122,13 +122,13 @@ let updateChecker;
 
 	const debugInfo = () => {
 		return dedent`DEBUG INFO:
-			Development Mode: ${is.dev}
-			Platform: ${process.platform} (Version ${os.release()})
-			Architecture: ${process.arch}
-			MBCord version: ${version}
-			Node version: ${process.versions.node}
-			Electron version: ${electronAPI?.process?.versions?.electron}
-			Chrome version: ${electronAPI?.process?.versions?.chrome}
+			Development Mode: ${ is.dev }
+			Platform: ${ process.platform } (Version ${ os.release() })
+			Architecture: ${ process.arch }
+			MBCord version: ${ version }
+			Node version: ${ process.versions.node }
+			Electron version: ${ electronAPI?.process?.versions?.electron }
+			Chrome version: ${ electronAPI?.process?.versions?.chrome }
 		`;
 	};
 
@@ -142,15 +142,15 @@ let updateChecker;
 
 	unhandled({
 		logger: (error) => logger.error(error),
-		showDialog: true,
-		reportButton: (error) => {
-			openNewGitHubIssue({
-				user: author,
-				repo: name,
-				labels: ['bug'],
-				body: `\`\`\`\n${error.stack}\n\`\`\`\n\n---\n\n${debugInfo()}`
-			});
-		}
+		showDialog: false,
+		// reportButton: (error) => {
+		//   openNewGitHubIssue({
+		//     user: author,
+		//     repo: name,
+		//     labels: ['bug'],
+		//     body: `\`\`\`\n${ error.stack }\n\`\`\`\n\n---\n\n${ debugInfo() }`
+		//   });
+		// }
 	});
 
 	const startApp = () => {
@@ -213,7 +213,7 @@ let updateChecker;
 
 		const doDisplay = store.get('doDisplayStatus');
 
-		logger.debug(`doDisplayStatus: ${doDisplay}`);
+		logger.debug(`doDisplayStatus: ${ doDisplay }`);
 		if (!doDisplay && rpc.user) await rpc.user.clearActivity();
 	};
 
@@ -231,7 +231,7 @@ let updateChecker;
 
 	const loadWindow = (pageName, size, preventAppQuitOnClose = true) => {
 		mainWindow.setSize(size.x, size.y);
-		mainWindow.loadFile(path.join(__dirname, 'static', `${pageName}.html`));
+		mainWindow.loadFile(path.join(__dirname, 'static', `${ pageName }.html`));
 
 		if (preventAppQuitOnClose) {
 			mainWindow.addListener(
@@ -312,11 +312,10 @@ let updateChecker;
 		dialog.showMessageBox({
 			title: name,
 			type: 'info',
-			detail: `Successfully removed server from the server list. ${
-				wasSelected
-					? 'Since this was the currently selected server, your presence will no longer be displayed.'
-					: ''
-			}`
+			detail: `Successfully removed server from the server list. ${ wasSelected
+				? 'Since this was the currently selected server, your presence will no longer be displayed.'
+				: ''
+				}`
 		});
 	};
 
@@ -325,11 +324,11 @@ let updateChecker;
 
 		for (const server of servers) {
 			serverSelectionSubmenu.push({
-				label: `${server.address} (${server.serverName})`,
+				label: `${ server.address } (${ server.serverName })`,
 				submenu: [
 					{
 						type: 'normal',
-						label: `Selected Server: ${booleanToYN(server.isSelected)}`,
+						label: `Selected Server: ${ booleanToYN(server.isSelected) }`,
 						enabled: false
 					},
 					{
@@ -427,7 +426,7 @@ let updateChecker;
 			},
 			{
 				type: 'normal',
-				label: `${name} v${version}`,
+				label: `${ name } v${ version }`,
 				enabled: false
 			}
 		]);
@@ -446,9 +445,9 @@ let updateChecker;
 
 		if (!is.dev)
 			new Notification({
-				title: `${name} ${version}`,
+				title: `${ name } ${ version }`,
 				icon: path.join(__dirname, 'icons', 'large.png'),
-				body: `${name} has been minimized to the tray`
+				body: `${ name } has been minimized to the tray`
 			}).show();
 
 		appBarHide(true);
@@ -472,11 +471,11 @@ let updateChecker;
 						type: 'info',
 						buttons: ['Okay', 'Get Latest Version'],
 						message: 'A new version is available!',
-						detail: `Your version is ${version}. The latest version currently available is ${data.version}`
+						detail: `Your version is ${ version }. The latest version currently available is ${ data.version }`
 					},
 					(index) => {
 						if (index === 1) {
-							shell.openExternal(`${homepage}/releases/latest`);
+							shell.openExternal(`${ homepage }/releases/latest`);
 						}
 					}
 				);
@@ -491,24 +490,24 @@ let updateChecker;
 	};
 
 	const disconnectRPC = async () => {
-    if (!rpc) return;
+		if (!rpc) return;
 
-    logger.info('Disconnecting from Discord');
-	  clearTimeout(connectRPCTimeout);
-	  rpc.transport.removeAllListeners('close');
+		logger.info('Disconnecting from Discord');
+		clearTimeout(connectRPCTimeout);
+		rpc.transport.removeAllListeners('close');
 
 		try {
 			await rpc.user?.clearActivity();
 		} catch (err) {
-      logger.error(err);
-    }
+			logger.error(err);
+		}
 
-    await rpc.destroy();
-    rpc = null
+		await rpc.destroy();
+		rpc = null
 	};
 
 	const connectRPC = () => {
-    clearTimeout(connectRPCTimeout);
+		clearTimeout(connectRPCTimeout);
 		return new Promise((resolve) => {
 			if (rpc)
 				return logger.warn(
@@ -519,30 +518,28 @@ let updateChecker;
 			if (!server) return logger.warn('No selected server');
 
 			rpc = new DiscordRPC.Client({
-        transport: 'ipc',
-        clientId: clientIds[server.serverType]
-      });
+				transport: 'ipc',
+				clientId: clientIds[server.serverType]
+			});
 			rpc
 				.login()
 				.then(resolve)
 				.catch(async () => {
 					logger.error(
-						`Failed to connect to Discord. Attempting to reconnect in ${
-							discordConnectRetryMS / 1000
+						`Failed to connect to Discord. Attempting to reconnect in ${ discordConnectRetryMS / 1000
 						} seconds`
 					);
 
-          await disconnectRPC();
-          connectRPCTimeout = setTimeout(connectRPC, discordConnectRetryMS);
-          return resolve();
+					await disconnectRPC();
+					connectRPCTimeout = setTimeout(connectRPC, discordConnectRetryMS);
+					return resolve();
 				});
 
 			rpc.transport.once('close', async () => {
 				await disconnectRPC();
 
 				logger.warn(
-					`Discord RPC connection closed. Attempting to reconnect in ${
-						discordConnectRetryMS / 1000
+					`Discord RPC connection closed. Attempting to reconnect in ${ discordConnectRetryMS / 1000
 					} seconds`
 				);
 
@@ -550,7 +547,7 @@ let updateChecker;
 			});
 
 			rpc.transport.once('open', () => {
-				logger.info(`Connected to Discord (Server type: ${server.serverType})`);
+				logger.info(`Connected to Discord (Server type: ${ server.serverType })`);
 			});
 		});
 	};
@@ -589,10 +586,9 @@ let updateChecker;
 	const setPresence = async () => {
 		if (!store.get('doDisplayStatus'))
 			return logger.debug('doDisplayStatus disabled, not setting status');
-    if (!rpc?.user)
-      return logger.debug('RPC user is not present, not setting status');
+		if (!rpc?.user)
+			return logger.debug('RPC user is not present, not setting status');
 
-		const data = store.get();
 		const server = getSelectedServer();
 		if (!server) return logger.warn('No selected server');
 
@@ -602,7 +598,7 @@ let updateChecker;
 			try {
 				sessions = await mbc.getSessions(maximumSessionInactivity);
 			} catch (err) {
-				return logger.error(`Failed to get sessions: ${err}`);
+				return logger.error(`Failed to get sessions: ${ err }`);
 			}
 
 			const session = sessions.find(
@@ -616,16 +612,16 @@ let updateChecker;
 				const NPItem = session.NowPlayingItem;
 				const NPItemId =
 					NPItem?.ParentLogoItemId &&
-					(['Video', 'Episode'].includes(NPItem.Type)) &&
-					(NPItem?.ExtraType || NPItem?.ParentIndexNumber === 0)
+						(['Video', 'Episode'].includes(NPItem.Type)) &&
+						(NPItem?.ExtraType || NPItem?.ParentIndexNumber === 0)
 						? NPItem.ParentLogoItemId
 						: NPItem.Id;
 
-        const {
-          libraryID: NPItemLibraryID,
-          externalUrls
-        } = await mbc.getItemInternalLibraryId(NPItemId);
-        if (!NPItemLibraryID) return;
+				const {
+					libraryID: NPItemLibraryID,
+					externalUrls
+				} = await mbc.getItemInternalLibraryId(NPItemId);
+				if (!NPItemLibraryID) return;
 
 				// convert
 				if (
@@ -634,7 +630,7 @@ let updateChecker;
 					NPItem?.ExtraType === 'ThemeMusic'
 				) {
 					// prettier-ignore
-					logger.debug(`${NPItem.Name} is in library with ID ${NPItemLibraryID} which is on the ignored library list, will not set status`);
+					logger.debug(`${ NPItem.Name } is in library with ID ${ NPItemLibraryID } which is on the ignored library list, will not set status`);
 					if (rpc.user) await rpc.user.clearActivity();
 					return;
 				}
@@ -643,7 +639,7 @@ let updateChecker;
 				logger.debug(scrubObject(session, 'RemoteEndPoint'));
 
 				const now = dayjs().utc();
-        const pausedTimestamp = session.PlayState.IsPaused && dayjs(session.LastPausedDate).utc();
+				const pausedTimestamp = session.PlayState.IsPaused && dayjs(session.LastPausedDate).utc();
 				const startTimestamp = now.subtract(
 					Math.floor(session.PlayState.PositionTicks / 10000000),
 					'seconds'
@@ -654,9 +650,9 @@ let updateChecker;
 				);
 
 				logger.debug(
-					`Time until media end: ${endTimestamp.diff(
+					`Time until media end: ${ endTimestamp.diff(
 						now
-					)}, been playing since: ${startTimestamp.toISOString()}`
+					) }, been playing since: ${ startTimestamp.toISOString() }`
 				);
 
 				// setTimeout(
@@ -675,78 +671,96 @@ let updateChecker;
 					(NPItem?.ExtraType || NPItem?.ParentIndexNumber === 0)
 				) {
 					largeImageKey = mbc.getPrimaryImage(NPItem.ParentLogoItemId);
-        }
+				}
 
-        const buttons = externalUrls.length && externalUrls.slice(0, 2).map(
-          item => ({
-            label: item.Name,
-            url: item.Url
-          })
-        );
-        logger.info(buttons)
+				const buttons = externalUrls.length && externalUrls.slice(-2).map(
+					item => ({
+						label: item.Name,
+						url: item.Url
+					})
+				);
 
-        /**
-         * @type {DiscordRPC.SetActivity}
-         */
+				/**
+				 * @type {DiscordRPC.SetActivity}
+				 */
 				const defaultProperties = {
 					largeImageKey,
-					largeImageText: `${
-						NPItem.Type === 'Audio' ? 'Listening' : 'Watching'
-					} on ${session.Client}`,
+					largeImageText: `${ NPItem.Type === 'Audio' ? 'Listening' : 'Watching'
+						} on ${ session.Client }`,
 					smallImageKey: session.PlayState.IsPaused ? 'pause' : 'play',
 					smallImageText: session.PlayState.IsPaused ? 'Paused' : 'Playing',
 					instance: false,
-          type: 3,
-          startTimestamp: !session.PlayState.IsPaused ? startTimestamp.unix() : pausedTimestamp.unix(),
-          endTimestamp: !session.PlayState.IsPaused ? endTimestamp.unix() : undefined,
-          ...(buttons.length && { buttons })
+					type: 3,
+					startTimestamp: session.PlayState.IsPaused ? pausedTimestamp.unix() : startTimestamp.unix(),
+					endTimestamp: session.PlayState.IsPaused ? undefined : endTimestamp.unix(),
+					statusDisplayType: DiscordRPC.StatusDisplayType.DETAILS,
+					...(buttons.length && { buttons })
 				};
 
 				switch (NPItem.Type) {
 					case 'Episode': {
-						// prettier-ignore
-						const seasonNum = NPItem.ParentIndexNumber
-						// prettier-ignore
-						const episodeNum = NPItem.IndexNumber;
-						let seasonName = NPItem.SeasonName.includes('Special')
-							? NPItem.SeriesName
-							: NPItem.SeasonName;
-						const year = NPItem?.PremiereDate
-							? `(${NPItem?.PremiereDate?.substring(0, 4)})`
-							: NPItem.ProductionYear
-							? `(${NPItem.ProductionYear})`
-              : '';
-            seasonName = seasonName.replace(/\(\d*\)/g, '').trim();
-            seasonName = seasonName.length + (year.length + 10) >= 128
-              ? seasonName.substring(0, 128 - (year.length + 13)) + '...'
-              : seasonName;
+						let {
+							PremiereDate,
+							ProductionYear,
+							ParentIndexNumber,
+							IndexNumber,
+							IndexNumberEnd,
+							SeasonName,
+							SeriesName,
+							Name,
+						} = NPItem || {}
+
+						const seasonNum = ParentIndexNumber
+							? `S${ ParentIndexNumber.toString().padStart(2, '0') }`
+							: '';
+
+						let episodeNum = IndexNumber
+							? IndexNumber.toString().padStart(2, '0')
+							: '';
+						const episodeNumEnd = IndexNumberEnd
+							? IndexNumberEnd.toString().padStart(2, '0')
+							: '';
+						episodeNum = (episodeNum && episodeNumEnd && episodeNum === episodeNumEnd) || !episodeNumEnd
+							? episodeNum
+							: `${ episodeNum }-${ episodeNumEnd }`
+
+
+						PremiereDate = PremiereDate ? PremiereDate.substring(0, 4) : null;
+						ProductionYear = [ProductionYear, PremiereDate]
+							.filter(Boolean)
+							.map(item => item.toString())
+							.sort((a, b) => b.localeCompare(a));
+						const year = ProductionYear.length ? `(${ ProductionYear[0] })` : '';
+
+						let seasonName = SeasonName.includes('Special')
+							? SeriesName
+							: SeasonName;
+						seasonName = seasonName.replaceAll(/\(\d*\)/g, '').trim();
+						seasonName = seasonName.length + (year.length + 10) >= 128
+							? seasonName.substring(0, 128 - (year.length + 13)) + '...'
+							: seasonName;
+
+						const episodeName = Name.length >= 64
+							? Name.substring(0, 61) + '...'
+							: Name
 
 						rpc.user?.setActivity({
-							details: `Watching ${seasonName} ${year}`,
-							state: `${
-								seasonNum ? `S${seasonNum.toString().padStart(2, '0')}` : ''
-							}${
-								episodeNum ? `E${episodeNum.toString().padStart(2, '0')}: ` : ''
-							}${
-								NPItem.Name.length >= 64
-									? NPItem.Name.substring(0, 61) + '...'
-									: NPItem.Name
-							}`,
+							details: `Watching ${ seasonName } ${ year }`,
+							state: `${ seasonNum }E${ episodeNum } ${ episodeName }`,
 							...defaultProperties
 						});
 						break;
 					}
 					case 'Movie': {
-						let movieName = NPItem.Name.replace(/gekijouban|eiga|: complete movie| - the movie/gi, '').trim();
+						let movieName = NPItem.Name.replaceAll(/gekijouban|eiga|: complete movie| - the movie/gi, '').trim();
 						movieName =
 							movieName.length >= 64
 								? movieName.substring(0, 61) + '...'
 								: movieName;
 						rpc.user?.setActivity({
 							details: 'Watching a Movie',
-							state: `${movieName} ${
-								NPItem.ProductionYear ? `(${NPItem.ProductionYear})` : ''
-							}`,
+							state: `${ movieName } ${ NPItem.ProductionYear ? `(${ NPItem.ProductionYear })` : ''
+								} `,
 							...defaultProperties
 						});
 						break;
@@ -755,12 +769,10 @@ let updateChecker;
 						const artists = NPItem.Artists.splice(0, 3); // we only want 3 artists
 
 						rpc.user?.setActivity({
-							details: `Watching ${NPItem.Name} ${
-								NPItem.ProductionYear ? `(${NPItem.ProductionYear})` : ''
-							}`,
-							state: `By ${
-								artists.length ? artists.join(', ') : 'Unknown Artist'
-							}`,
+							details: `Watching ${ NPItem.Name } ${ NPItem.ProductionYear ? `(${ NPItem.ProductionYear })` : ''
+								} `,
+							state: `By ${ artists.length ? artists.join(', ') : 'Unknown Artist'
+								} `,
 							...defaultProperties
 						});
 						break;
@@ -772,37 +784,35 @@ let updateChecker;
 						).splice(0, 3);
 
 						rpc.user?.setActivity({
-							details: `Listening to ${NPItem.Name} ${
-								NPItem.ProductionYear ? `(${NPItem.ProductionYear})` : ''
-							}`,
-							state: `By ${
-								artists.length
-									? artists.join(', ')
-									: albumArtists.length
+							details: `Listening to ${ NPItem.Name } ${ NPItem.ProductionYear ? `(${ NPItem.ProductionYear })` : ''
+								} `,
+							state: `By ${ artists.length
+								? artists.join(', ')
+								: albumArtists.length
 									? albumArtists.join(', ')
 									: 'Unknown Artist'
-							}`,
+								} `,
 							...defaultProperties
 						});
 						break;
 					}
 					case 'Video': {
 						if (NPItem?.ExtraType) {
-              NPItem.ExtraType = NPItem.ExtraType === 'Unknown' ? 'a Special' : NPItem.ExtraType;
-							const videoName = NPItem.Name.replace(
+							NPItem.ExtraType = NPItem.ExtraType === 'Unknown' ? 'a Special' : NPItem.ExtraType;
+							const videoName = NPItem.Name.replaceAll(
 								/gekijouban|eiga|: complete movie| - the movie/gi,
 								''
 							).trim();
 							rpc.user?.setActivity({
-								details: `Watching ${NPItem.ExtraType} from a Movie`,
-								state: `${videoName}`,
+								details: `Watching ${ NPItem.ExtraType } from a Movie`,
+								state: `${ videoName } `,
 								...defaultProperties
 							});
 						} else {
 							const videoName = NPItem.Name.trim();
 							rpc.user?.setActivity({
 								details: `Watching a Video`,
-								state: `${videoName}`,
+								state: `${ videoName } `,
 								...defaultProperties
 							});
 						}
@@ -820,7 +830,7 @@ let updateChecker;
 				if (rpc.user) await rpc.user.clearActivity();
 			}
 		} catch (error) {
-			logger.error(`Failed to set activity: ${error}`);
+			logger.error(`Failed to set activity: ${ error } `);
 		}
 	};
 
@@ -851,7 +861,7 @@ let updateChecker;
 			...jellyfinServers
 		];
 
-		logger.debug(`Server discovery result: ${JSON.stringify(servers)}`);
+		logger.debug(`Server discovery result: ${ JSON.stringify(servers) } `);
 
 		event.reply('RECEIVE_INFO', servers);
 	});
@@ -934,7 +944,7 @@ let updateChecker;
 
 	// FUTURE RELEASE, UNDECIDED..
 	// ipcMain.on('RECEIVE_CONNECT_SERVERS', async (event, data) => {
-	// 	logger.debug(`Receive connect servers data: ${JSON.stringify(data)}`);
+	// 	logger.debug(`Receive connect servers data: ${ JSON.stringify(data) } `);
 
 	// 	let connectUser;
 	// 	try {

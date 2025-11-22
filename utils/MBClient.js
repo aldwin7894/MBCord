@@ -27,9 +27,9 @@ class MBClient {
 	}
 
 	get serverAddress() {
-		const url = new URL(`${this.protocol}://${this.address}`);
+		const url = new URL(`${ this.protocol }://${ this.address }`);
 		url.port = this.port;
-        return url.toString().replace(/\/+$/, '');
+		return url.toString().replace(/\/+$/, '');
 	}
 
 	get isAuthenticated() {
@@ -39,8 +39,8 @@ class MBClient {
 	get headers() {
 		const headers = {};
 
-		headers['User-Agent'] = `${this.deviceName}/${this.deviceVersion}`;
-		if(this.accessToken) headers['X-Emby-Token'] = this.accessToken;
+		headers['User-Agent'] = `${ this.deviceName }/${ this.deviceVersion }`;
+		if (this.accessToken) headers['X-Emby-Token'] = this.accessToken;
 
 		return headers;
 	}
@@ -48,7 +48,7 @@ class MBClient {
 	static exchangeConnectToken(url, connectUserToken, connectUserId) {
 		return new Promise((resolve, reject) => {
 			request({
-				url: url + `?format=json&ConnectUserId=${connectUserId}`,
+				url: url + `?format=json&ConnectUserId=${ connectUserId }`,
 				headers: {
 					'x-emby-token': connectUserToken
 				},
@@ -56,7 +56,7 @@ class MBClient {
 			}, (err, res, body) => {
 				if (err) return reject(err);
 				if (res.statusCode !== 200)
-					return reject(`Status: ${res.statusCode} Response: ${JSON.stringify(body)}`);
+					return reject(`Status: ${ res.statusCode } Response: ${ JSON.stringify(body) }`);
 
 				resolve(body);
 			});
@@ -69,7 +69,7 @@ class MBClient {
 	getSessions(activeWithinSeconds) {
 		return new Promise((resolve, reject) => {
 			request(
-				`${this.serverAddress}/Sessions${activeWithinSeconds ? `?ActiveWithinSeconds=${activeWithinSeconds}` : ''}`,
+				`${ this.serverAddress }/Sessions${ activeWithinSeconds ? `?ActiveWithinSeconds=${ activeWithinSeconds }` : '' }`,
 				{
 					headers: this.headers,
 					json: true
@@ -77,7 +77,7 @@ class MBClient {
 				(err, res, body) => {
 					if (err) return reject(err);
 					if (res.statusCode !== 200)
-						return reject(`Status: ${res.statusCode} Response: ${JSON.stringify(body)}`);
+						return reject(`Status: ${ res.statusCode } Response: ${ JSON.stringify(body) }`);
 
 					resolve(body);
 				}
@@ -91,7 +91,7 @@ class MBClient {
 	assignDeviceCapabilities() {
 		return new Promise((resolve, reject) => {
 			request.post(
-				`${this.serverAddress}/Sessions/Capabilities/Full`,
+				`${ this.serverAddress }/Sessions/Capabilities/Full`,
 				{
 					headers: this.headers,
 					body: {
@@ -102,7 +102,7 @@ class MBClient {
 				(err, res) => {
 					if (err) return reject(err);
 					if (res.statusCode !== 204)
-						return reject(`Status: ${res.statusCode} Reason: ${JSON.stringify(body)}`);
+						return reject(`Status: ${ res.statusCode } Reason: ${ JSON.stringify(body) }`);
 
 					resolve();
 				}
@@ -118,12 +118,12 @@ class MBClient {
 		// we have to do all this fucking bullshit just to get the library ID
 		return new Promise((resolve, reject) => {
 			const cacheResult = this.libraryIDCache[libraryId];
-			if (cacheResult && cacheResult.expires > new Date().getTime()) {
+			if (cacheResult && cacheResult.expires > Date.now()) {
 				resolve(cacheResult.value);
 			}
 
 			request(
-				`${this.serverAddress}/Users/${this.userId}/Items?Limit=1&ParentId=${libraryId}&Fields=ParentId`,
+				`${ this.serverAddress }/Users/${ this.userId }/Items?Limit=1&ParentId=${ libraryId }&Fields=ParentId`,
 				{
 					headers: this.headers,
 					json: true
@@ -131,7 +131,7 @@ class MBClient {
 				async (err, res, body) => {
 					if (err) return reject(err);
 					if (res.statusCode !== 200)
-						return reject(`Status: ${res.statusCode} Response: ${JSON.stringify(body)}`);
+						return reject(`Status: ${ res.statusCode } Response: ${ JSON.stringify(body) }`);
 
 					// some libraries might have no items
 					if (!body.Items[0]) return resolve(null);
@@ -139,10 +139,10 @@ class MBClient {
 					try {
 						// prettier-ignore
 						const LibraryInternalID = await this.getItemInternalLibraryId(body.Items[0].Id);
-						this.libraryIDCache[libraryId] = { value: LibraryInternalID, expires: new Date().getTime() + this.cacheExpSecs * 1000 };
+						this.libraryIDCache[libraryId] = { value: LibraryInternalID, expires: Date.now() + this.cacheExpSecs * 1000 };
 						resolve(LibraryInternalID);
 					} catch (error) {
-						reject(`Failed to get library ID: ${error}`);
+						reject(`Failed to get library ID: ${ error }`);
 					}
 				}
 			);
@@ -152,7 +152,7 @@ class MBClient {
 	getSystemInfo() {
 		return new Promise((resolve, reject) => {
 			request(
-				`${this.serverAddress}/System/Info`,
+				`${ this.serverAddress }/System/Info`,
 				{
 					headers: this.headers,
 					json: true
@@ -160,7 +160,7 @@ class MBClient {
 				(err, res, body) => {
 					if (err) return reject(err);
 					if (res.statusCode !== 200)
-						return reject(`Status: ${res.statusCode} Response: ${JSON.stringify(body)}`);
+						return reject(`Status: ${ res.statusCode } Response: ${ JSON.stringify(body) }`);
 
 					resolve(body);
 				}
@@ -171,22 +171,22 @@ class MBClient {
 	/**
 	 * @param {string} itemId ID of the item
 	 * @returns {Promise<{
-   *  libraryID: string,
-   *  externalUrls?: {
-   *    Name: string,
-   *    Url: string
+	 *  libraryID: string,
+	 *  externalUrls?: {
+	 *    Name: string,
+	 *    Url: string
 *      }[]
-   * }>}
+	 * }>}
 	 */
 	getItemInternalLibraryId(itemId) {
 		return new Promise((resolve, reject) => {
 			const cacheResult = this.itemLibraryIDCache[itemId];
-			if (cacheResult && cacheResult.expires > new Date().getTime()) {
+			if (cacheResult && cacheResult.expires > Date.now()) {
 				resolve(cacheResult.value);
 			}
 
 			request(
-				`${this.serverAddress}/Items/${itemId}/Ancestors`,
+				`${ this.serverAddress }/Items/${ itemId }/Ancestors`,
 				{
 					headers: this.headers,
 					json: true
@@ -194,23 +194,25 @@ class MBClient {
 				(err, res, body) => {
 					if (err) return reject(err);
 					if (res.statusCode !== 200) {
-            return reject(new Error(`Status: ${ res.statusCode } Response: ${ JSON.stringify(body) }`));
-          }
+						return reject(new Error(`Status: ${ res.statusCode } Response: ${ JSON.stringify(body) }`));
+					}
 
 					// second ancestor is always the library
-          const libraryID = body.splice(body.length - 2, 1)[0]?.Id;
-          if (!libraryID) return resolve(null);
+					const libraryID = body.splice(-2, 1)[0]?.Id;
+					if (!libraryID) return resolve(null);
 
-          const parent = body.splice(body.length - 2, 1)?.[0];
+					const parent = body.splice(-2, 1)?.[0];
+					const externalUrls = (parent?.ExternalUrls || []).filter(url => !url?.Name?.includes('Shoko'));
+					const filteredUrls = externalUrls.filter(url => url?.Name?.includes('('));
 
-          const value = {
-            value: {
-              libraryID,
-              externalUrls: (parent?.ExternalUrls || []).filter(url => !url?.Name?.includes('Shoko'))
-            },
-            expires: new Date().getTime() + this.cacheExpSecs * 1000
-          };
-          this.itemLibraryIDCache[itemId] = value;
+					const value = {
+						value: {
+							libraryID,
+							externalUrls: filteredUrls.length ? filteredUrls : externalUrls
+						},
+						expires: Date.now() + this.cacheExpSecs * 1000
+					};
+					this.itemLibraryIDCache[itemId] = value;
 					resolve(value);
 				}
 			);
@@ -223,7 +225,7 @@ class MBClient {
 	getUserViews() {
 		return new Promise((resolve, reject) => {
 			request(
-				`${this.serverAddress}/Users/${this.userId}/views`,
+				`${ this.serverAddress }/Users/${ this.userId }/views`,
 				{
 					headers: this.headers,
 					json: true
@@ -231,7 +233,7 @@ class MBClient {
 				async (err, res, body) => {
 					if (err) return reject(err);
 					if (res.statusCode !== 200)
-						return reject(`Status: ${res.statusCode} Response: ${JSON.stringify(body)}`);
+						return reject(`Status: ${ res.statusCode } Response: ${ JSON.stringify(body) }`);
 
 					// undefined is for mixedcontent libraries (which dont have a collection type property for some reason?)
 					// we dont want people to select libraries like playlist and collections since those are virtual libraries and not actual libraries
@@ -263,7 +265,7 @@ class MBClient {
 							}
 						} catch (error) {
 							reject(
-								`Interal ID fetch failure: ${error} at library ${library.Name}`
+								`Interal ID fetch failure: ${ error } at library ${ library.Name }`
 							);
 						}
 					}
@@ -274,9 +276,9 @@ class MBClient {
 		});
 	}
 
-  getPrimaryImage(mediaId) {
-    return `${this.serverAddress}/Items/${mediaId}/Images/Primary?width=512&quality=80&format=jpg`;
-  }
+	getPrimaryImage(mediaId) {
+		return `${ this.serverAddress }/Items/${ mediaId }/Images/Primary?width=512&quality=80&format=jpg`;
+	}
 
 	/**
 	 * @returns {Promise<void>}
@@ -286,10 +288,10 @@ class MBClient {
 			if (this.accessToken) resolve();
 
 			request.post(
-				`${this.serverAddress}/Users/AuthenticateByName`,
+				`${ this.serverAddress }/Users/AuthenticateByName`,
 				{
 					headers: {
-						Authorization: `Emby Client=Other, Device=${this.deviceName}, DeviceId=${this.deviceId}, Version=${this.deviceVersion}`
+						Authorization: `Emby Client=Other, Device=${ this.deviceName }, DeviceId=${ this.deviceId }, Version=${ this.deviceVersion }`
 					},
 					body: {
 						Username: this.username,
@@ -300,7 +302,7 @@ class MBClient {
 				async (err, res, body) => {
 					if (err) return reject(err);
 					if (res.statusCode !== 200)
-						return reject(`Status: ${res.statusCode} Response: ${JSON.stringify(body)}`);
+						return reject(`Status: ${ res.statusCode } Response: ${ JSON.stringify(body) }`);
 
 					this.accessToken = body.AccessToken;
 					this.userId = body.User.Id;
@@ -309,7 +311,7 @@ class MBClient {
 						try {
 							await this.assignDeviceCapabilities();
 						} catch (error) {
-							return reject(`Failed to set device icon: ${error}`);
+							return reject(`Failed to set device icon: ${ error }`);
 						}
 					}
 
@@ -330,7 +332,7 @@ class MBClient {
 
 			if (this.accessToken) {
 				request.post(
-					`${this.serverAddress}/Sessions/Logout`,
+					`${ this.serverAddress }/Sessions/Logout`,
 					{
 						headers: this.headers
 					},
